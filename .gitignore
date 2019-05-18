@@ -1,0 +1,5 @@
+.vscode
+Pipfile.lock
+*.log
+*.py[cod]
+__pycache__/
