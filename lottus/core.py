@@ -2,7 +2,7 @@ import abc
 import json
 import os.path
 import os
-import helpers
+import lottus.helpers
 
 class Lottus(object):
     def __init__(self, app_name, initial_menu, menus, session_bag):
