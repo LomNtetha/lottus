@@ -6,9 +6,13 @@ import lottus.helpers as helpers
 
 class Lottus(object):
     '''
+        Represents the Lottus application.
     '''
     def __init__(self, app_name, initial_menu, menus, session_bag):
         '''
+            Represents the Lottus application. It receives the name of the application, 
+            the initial menu, the menus and a session bag. The session bag acts as the storage
+            for Lottus sessions.
         '''
         self.initial_menu = initial_menu
         self._app_name = app_name
@@ -18,6 +22,8 @@ class Lottus(object):
 
     def process_menu(self, menu_name, session, request):
         '''
+            Processes the request provided. It receives the menu_name and the session
+            and the request
         '''
         processor = self._get_menu_name_processor(menu_name)
 
@@ -41,11 +47,14 @@ class Lottus(object):
 
     def get_menu(self, menu_name):
         '''
+            Receives parameter menu_name and returns the menu
         '''
         return self._menus.get(menu_name)
 
     def do_auto_process_menu(self, menu, session, request):
         '''
+            Processes menus marked as auto_processed = True. It receives the menu,
+            the session and the request
         '''
         if menu and 'required' in menu:
             required = menu['required']
@@ -83,6 +92,7 @@ class Lottus(object):
 
     def _get_menu_name_processor(self, menu_name):
         '''
+            Returns the processor for menu_name
         '''
         if menu_name in self._mapped_services:
             return self._mapped_services[menu_name]
@@ -91,6 +101,7 @@ class Lottus(object):
 
     def handle_request(self, request):
         '''
+            Handles all ussd request
         '''
         session = self._session_bag.get_session(request['cell_number'], request['session'])
         if not session:
@@ -104,20 +115,19 @@ class Lottus(object):
 
         return helpers.beautify_menu(menu)
 
-    def location(self, rule):
+    def location(self, menu_name):
         '''
+            A decorator that is used to register a new processor for a menu_name
         '''
         def decorator(f):
-            '''
-            '''
-            self.add_location_rule(rule, f)
+            self.add_location_menu_name(menu_name, f)
             return f
         return decorator
 
-    def add_location_rule(self, rule, f):
+    def add_location_menu_name(self, menu_name, f):
         '''
         '''
-        self._mapped_services[rule] = f
+        self._mapped_services[menu_name] = f
 
 class Session(object):
     '''
@@ -164,6 +174,17 @@ class Option(object):
         self._display = display
         self._menu = menu
         self._active = True
+
+
+class Request(object):
+    '''
+    '''
+    def __init__(self, cell_number, request_str, session):
+        '''
+        '''
+        self.cell_number = cell_number
+        self.request_str = request_str
+        self.session = session
 
 
 class USSDSessionBag:
