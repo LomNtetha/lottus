@@ -2,58 +2,15 @@ Lottus
 ==========================
 
 ``` {.sourceCode .python}
+#flask is used to serve our ussd app over http
 from flask import Flask, request, json, Response
 
 import lottus.core
 import os
 import lottus.helpers
 
-with open('menus.json') as f:
-    menus = json.load(f)
-
-def get_lottus_app():
-    lottus_app = lottus.core.Lottus(__name__, 'INITIAL', menus, InMemoryUSSDSessionBag())
-
-    return lottus_app
-
-
-class InMemoryUSSDSessionBag(lottus.core.USSDSessionBag):
-    def __init__(self):
-        self.__sessions = []
-
-    def get_session(self, msisdn, session):
-        return next((s for s in self.__sessions if s['session'] == session), None)
-
-    def update_session(self, session):
-        pass
-
-    def save_session(self, session):
-        pass
-
-    def add_session(self, session):
-        self.__sessions.append(session)
-
-
-app = Flask(__name__)
-
-lottus_app = lottusapp.get_lottus_app()
-
-@app.route('/ussdapp/json/', methods=['POST'])
-def ussd_json_api():
-    js = json.dumps(request.json)
-    req_dict = json.loads(js)
-
-    resp = lottus_app.handle_request(req_dict)
-
-    return Response(json.dumps(resp), status=200, mimetype='application/json')
-
-
-if __name__ == "__main__":
-    app.run()
-```
-
-``` {.sourceCode .json}
-{
+# create our menus
+menus = {
     "INITIAL": {
       "name": "INITIAL",
       "title": "Ben Chambule's USSD - CV",
@@ -167,4 +124,49 @@ if __name__ == "__main__":
       "active": true
     }
   }
+
+
+def get_lottus_app():
+    lottus_app = lottus.core.Lottus(__name__, 'INITIAL', menus, InMemoryUSSDSessionBag())
+
+    return lottus_app
+
+
+class InMemoryUSSDSessionBag(lottus.core.USSDSessionBag):
+    def __init__(self):
+        self.__sessions = []
+
+    def get_session(self, msisdn, session):
+        return next((s for s in self.__sessions if s['session'] == session), None)
+
+    def update_session(self, session):
+        pass
+
+    def save_session(self, session):
+        pass
+
+    def add_session(self, session):
+        self.__sessions.append(session)
+
+
+app = Flask(__name__)
+
+lottus_app = get_lottus_app()
+
+@app.route('/ussdapp/json/', methods=['POST'])
+def ussd_json_api():
+    js = json.dumps(request.json)
+    req_dict = json.loads(js)
+
+    resp = lottus_app.handle_request(req_dict)
+
+    return Response(json.dumps(resp), status=200, mimetype='application/json')
+
+
+if __name__ == "__main__":
+    app.run()
 ```
+
+Any one can test it on Postman or curl or httpie (my favorite)
+
+echo {"session": 1234, "cell_number": "+258842271064", "request_str": "4"} | http http://localhost:5000/ussdapp/json/
