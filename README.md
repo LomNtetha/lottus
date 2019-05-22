@@ -1,7 +1,18 @@
 Lottus
 ==========================
 
+An USSD library that will save you time. Ever wondered if you could quickly write and/or prototype an ussd application? 
+
+Installation
+------------
+``` {.sourceCode .bash}
+pipenv install git+https://github.com/benchambule/lottus.git@master#egg=lottus
+```
+
+After installation
+
 ``` {.sourceCode .python}
+#file appy.py
 #flask is used to serve our ussd app over http
 from flask import Flask, request, json, Response
 
@@ -167,6 +178,18 @@ if __name__ == "__main__":
     app.run()
 ```
 
+Run your application
+--------------------
+
+``` {.sourceCode .bash}
+python app.py
+```
+
+Testing
+------------------------
+
 Any one can test it on Postman or curl or httpie (my favorite)
 
+``` {.sourceCode .bash}
 echo {"session": 1234, "cell_number": "+258842271064", "request_str": "4"} | http http://localhost:5000/ussdapp/json/
+```
