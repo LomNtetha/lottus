@@ -39,7 +39,8 @@ def beautify_menu(menu):
     return {
         'title': menu['title'],
         'message': menu['message'],
-        'options': [beautify_option(x) for x in menu['options']]
+        'options': [beautify_option(x) for x in menu['options']],
+        'type': menu['type']
     }
 
 def beautify_option(option):
