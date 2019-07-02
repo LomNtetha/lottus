@@ -113,7 +113,7 @@ class Lottus(object):
             menu = self.process_menu(session['location'], session, request['request_str'])
             self._session_bag.update_session(session)
 
-        return helpers.beautify_menu(menu)
+        return menu
 
     def location(self, menu_name):
         '''
@@ -128,63 +128,6 @@ class Lottus(object):
         '''
         '''
         self._mapped_services[menu_name] = f
-
-class Session(object):
-    '''
-    '''
-    def __init__(number, cell_number):
-        '''
-        '''
-        self._location = None
-        self._cell_number = None
-        self._number = None
-        self._parameters = {}
-
-    def set_location(location):
-        '''
-        '''
-        self._location = location
-
-    def add_variable(name, value):
-        '''
-        '''
-        self._parameters[name] = value
-
-
-class Menu(object):
-    '''
-    '''
-    def __init__(name, message = None, title = None, type="FORM"):
-        '''
-        '''
-        self.name = name
-        self.message = "" if message is None else message
-        self.title = "" if title is None else title
-        self.options = {}
-        self.type = "FORM"
-        self.auto_process = True
-        self.active = True
-
-
-class Option(object):
-    '''
-    '''
-    def __init__(name, display, menu):
-        self._name = name
-        self._display = display
-        self._menu = menu
-        self._active = True
-
-
-class Request(object):
-    '''
-    '''
-    def __init__(self, cell_number, request_str, session):
-        '''
-        '''
-        self.cell_number = cell_number
-        self.request_str = request_str
-        self.session = session
 
 
 class USSDSessionBag:

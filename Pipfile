@@ -4,9 +4,11 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+pytest = "*"
 
 [packages]
 flask = "*"
+lottus = {ref = "master", git = "https://github.com/benchambule/lottus.git"}
 
 [requires]
 python_version = "3.7"

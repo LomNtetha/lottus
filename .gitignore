@@ -3,3 +3,4 @@ Pipfile.lock
 *.log
 *.py[cod]
 __pycache__/
+.pytest_cache/
