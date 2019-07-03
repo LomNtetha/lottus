@@ -1,12 +1,5 @@
 import lottus.core
 
-def inc(x):
-    return x + 1
-
-
-def test_answer():
-    assert inc(3) == 4
-
 class InMemoryUSSDSessionBag(lottus.core.USSDSessionBag):
     def __init__(self):
         self.__sessions = []
@@ -177,8 +170,22 @@ def get_lottus_app():
 def test_menu_title_must_be_initial_menu():
     lottus_app = get_lottus_app()
     resp = lottus_app.handle_request(create_lottus_request('riuytiu', '+258842217064', '*123#'))
-    print(resp)
     assert resp['name'] == 'INITIAL'
+
+
+def test_menu_title_must_select_english_menu():
+    lottus_app = get_lottus_app()
+    lottus_app.handle_request(create_lottus_request('riuytiu', '+258842217064', '*123#'))
+    resp = lottus_app.handle_request(create_lottus_request('riuytiu', '+258842217064', '1'))
+    assert resp['name'] == 'ENGLISH'
+
+def test_menu_title_must_be_academic_info_pt():
+    lottus_app = get_lottus_app()
+    lottus_app.handle_request(create_lottus_request('riuytiu', '+258842217064', '*123#'))
+    lottus_app.handle_request(create_lottus_request('riuytiu', '+258842217064', '2'))
+    resp = lottus_app.handle_request(create_lottus_request('riuytiu', '+258842217064', '4'))
+    assert resp['name'] == 'ACADEMIC_PT'
+
 
 if __name__ == "__main__":
     pass
