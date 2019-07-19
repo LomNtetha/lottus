@@ -1,21 +1,3 @@
-Lottus
-==========================
-
-An USSD library that will save you time. Ever wondered if you could quickly write and/or prototype an ussd application? 
-
-Installation
-------------
-``` {.sourceCode .bash}
-pipenv install git+https://github.com/benchambule/lottus.git@master#egg=lottus
-```
-
-After installation
-
-``` {.sourceCode .python}
-#file appy.py
-#flask is used to serve our ussd app over http
-from flask import Flask, request, json, Response
-
 from lottus import *
 import random
 
@@ -90,36 +72,64 @@ def create_lottus_app():
     
     return lottus_app
 
-app = Flask(__name__)
+def test_must_return_portuguese_menu():
+    app = create_lottus_app()
 
-lottus_app = create_lottus_app()
+    sessio_nr = random.randint(1000000, 9999999)
+    cell_nr = '258842217064'
 
-@app.route('/ussdapp/json/', methods=['POST'])
-def ussd_json_api():
-    js = json.dumps(request.json)
-    req_dict = json.loads(js)
+    window = app.process_request(create_request(session_nr=sessio_nr, cell_nr=cell_nr, request_str=8745))
 
-    resp = lottus_app.handle_request(req_dict)
+    assert window['name'] == 'INITIAL'
 
-    return Response(json.dumps(resp), status=200, mimetype='application/json')
+    window = app.process_request(create_request(session_nr=sessio_nr, cell_nr=cell_nr, request_str="2"))
+
+    assert window['name'] == 'PORTUGUESE'
+
+def test_must_return_english_menu():
+    app = create_lottus_app()
+
+    sessio_nr = random.randint(1000000, 9999999)
+    cell_nr = '258842217064'
+
+    window = app.process_request(create_request(session_nr=sessio_nr, cell_nr=cell_nr, request_str=8745))
+
+    assert window['name'] == 'INITIAL'
+
+    window = app.process_request(create_request(session_nr=sessio_nr, cell_nr=cell_nr, request_str="1"))
+
+    assert window['name'] == 'ENGLISH'
+
+def test_must_return_initial_menu():
+    app = create_lottus_app()
+    
+    sessio_nr = random.randint(1000000, 9999999)
+    cell_nr = '258842217064'
+
+    window = app.process_request(create_request(session_nr=sessio_nr, cell_nr=cell_nr, request_str=8745))
+
+    assert window['name'] == 'INITIAL'
+
+def test_must_return_error_menu():
+    app = create_lottus_app()
+    
+    sessio_nr = random.randint(1000000, 9999999)
+    cell_nr = '258842217064'
+
+    window = app.process_request(create_request(session_nr=sessio_nr, cell_nr=cell_nr, request_str=8745))
+
+    assert window['name'] == 'INITIAL'
+
+    window = app.process_request(create_request(session_nr=sessio_nr, cell_nr=cell_nr, request_str="3"))
+
+    assert window['name'] == 'INITIAL'
 
 
-if __name__ == "__main__":
-    app.run()
-```
+# if __name__ == '__main__':
+#     app = create_lottus_app()
+    
+#     sessio_nr = random.randint(1000000, 9999999)
+#     cell_nr = '258842217064'
 
-Run your application
---------------------
-
-``` {.sourceCode .bash}
-python app.py
-```
-
-Testing
-------------------------
-
-Any one can test it on Postman or curl or httpie (my favorite)
-
-``` {.sourceCode .bash}
-echo {"session": 1234, "cell_number": "+258842271064", "request_str": "4"} | http http://localhost:5000/ussdapp/json/
-```
+#     window = app.process_request(create_request(session_nr=sessio_nr, cell_nr=cell_nr, request_str=8745))
+#     window = app.process_request(create_request(session_nr=sessio_nr, cell_nr=cell_nr, request_str="2"))

@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="lottus",
-    version="0.0.1",
+    version="0.0.2",
     author="Benjamim Chambule",
     author_email="benchambule@gmail.com",
     description="An ussd library that will save you time",

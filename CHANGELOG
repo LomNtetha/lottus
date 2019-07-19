@@ -1,0 +1,4 @@
+NEW Features
+- Cacheability - needed for mapped windows and optional for other windows
+- menu renamed window
+- No mark window as auto_process = True

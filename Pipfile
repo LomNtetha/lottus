@@ -7,8 +7,7 @@ verify_ssl = true
 pytest = "*"
 
 [packages]
-flask = "*"
-lottus = {ref = "master", git = "https://github.com/benchambule/lottus.git"}
+pytest = "*"
 
 [requires]
 python_version = "3.7"

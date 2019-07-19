@@ -1,25 +1,19 @@
-Lottus
-==========================
-
-An USSD library that will save you time. Ever wondered if you could quickly write and/or prototype an ussd application? 
-
-Installation
-------------
-``` {.sourceCode .bash}
-pipenv install git+https://github.com/benchambule/lottus.git@master#egg=lottus
-```
-
-After installation
-
-``` {.sourceCode .python}
-#file appy.py
-#flask is used to serve our ussd app over http
-from flask import Flask, request, json, Response
-
 from lottus import *
 import random
 
 windows = {
+    "INITIAL": {
+        "name": "INITIAL",
+        "title": "Ben Chambule's USSD - CV",
+        "message": "Please select your languange of choice",
+        "options": [
+            {"option": "1", "display": "English", "window": "ENGLISH", "active": True},
+            {"option": "2", "display": "Portuguese", "window": "PORTUGUESE", "active": True}
+        ],
+        "type": "FORM",
+        "active": True
+    },
+    
     "ENGLISH": {
         "name": "ENGLISH",
         "title": "English window",
@@ -37,16 +31,6 @@ windows = {
 }
 
 def create_lottus_app():
-    class Cacheablility(WindowCache):
-        def __init__(self):
-            self._windows = {}
-
-        def get(self, window, session_nr=None):
-            return self._windows[window] if window in self._windows else None
-
-        def cache(self, window, session_nr=None):
-            self._windows[window['name']] = window
-
     class InMemorySessionContext(SessionContext):
         def __init__(self):
             self._sessions = []
@@ -60,15 +44,8 @@ def create_lottus_app():
         def create(self, session_nr, cell_nr):
             return {'number': session_nr, 'cell': cell_nr}
 
-    lottus_app = Lottus('INITIAL', windows, InMemorySessionContext(), Cacheablility())
+    lottus_app = Lottus('INITIAL', windows, InMemorySessionContext())
 
-    @lottus_app.window('INITIAL')
-    def initial_window(session, request):
-        options = [create_option("1", "English", "ENGLISH"), create_option("2", "Portuguese", "PORTUGUESE")]
-        window = create_window("INITIAL", "Ben Chambule's CV", "Select one of following options", options)
-
-        return window, session
-    
     @lottus_app.window('PORTUGUESE')
     def portuguese_window(session, request):
         window = {
@@ -90,36 +67,54 @@ def create_lottus_app():
     
     return lottus_app
 
-app = Flask(__name__)
+def test_must_return_portuguese_menu():
+    app = create_lottus_app()
 
-lottus_app = create_lottus_app()
+    sessio_nr = random.randint(1000000, 9999999)
+    cell_nr = '258842217064'
 
-@app.route('/ussdapp/json/', methods=['POST'])
-def ussd_json_api():
-    js = json.dumps(request.json)
-    req_dict = json.loads(js)
+    window = app.process_request(create_request(session_nr=sessio_nr, cell_nr=cell_nr, request_str=8745))
 
-    resp = lottus_app.handle_request(req_dict)
+    assert window['name'] == 'INITIAL'
 
-    return Response(json.dumps(resp), status=200, mimetype='application/json')
+    window = app.process_request(create_request(session_nr=sessio_nr, cell_nr=cell_nr, request_str="2"))
 
+    assert window['name'] == 'PORTUGUESE'
 
-if __name__ == "__main__":
-    app.run()
-```
+def test_must_return_english_menu():
+    app = create_lottus_app()
 
-Run your application
---------------------
+    sessio_nr = random.randint(1000000, 9999999)
+    cell_nr = '258842217064'
 
-``` {.sourceCode .bash}
-python app.py
-```
+    window = app.process_request(create_request(session_nr=sessio_nr, cell_nr=cell_nr, request_str=8745))
 
-Testing
-------------------------
+    assert window['name'] == 'INITIAL'
 
-Any one can test it on Postman or curl or httpie (my favorite)
+    window = app.process_request(create_request(session_nr=sessio_nr, cell_nr=cell_nr, request_str="1"))
 
-``` {.sourceCode .bash}
-echo {"session": 1234, "cell_number": "+258842271064", "request_str": "4"} | http http://localhost:5000/ussdapp/json/
-```
+    assert window['name'] == 'ENGLISH'
+
+def test_must_return_initial_menu():
+    app = create_lottus_app()
+    
+    sessio_nr = random.randint(1000000, 9999999)
+    cell_nr = '258842217064'
+
+    window = app.process_request(create_request(session_nr=sessio_nr, cell_nr=cell_nr, request_str=8745))
+
+    assert window['name'] == 'INITIAL'
+
+def test_must_return_error_menu():
+    app = create_lottus_app()
+    
+    sessio_nr = random.randint(1000000, 9999999)
+    cell_nr = '258842217064'
+
+    window = app.process_request(create_request(session_nr=sessio_nr, cell_nr=cell_nr, request_str=8745))
+
+    assert window['name'] == 'INITIAL'
+
+    window = app.process_request(create_request(session_nr=sessio_nr, cell_nr=cell_nr, request_str="3"))
+
+    assert window['name'] == 'INITIAL'
