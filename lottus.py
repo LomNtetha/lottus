@@ -51,7 +51,7 @@ class Lottus(object):
         window = None
 
         if session is None:
-            session = create_session(session_nr, cell_nr)
+            session = create_session(session_nr, cell_nr, self.initial_window)
 
             if self.initial_window in self.mapped_windows:
                 window, session = self.get_mapped_window(self.initial_window, session, request)
