@@ -331,3 +331,21 @@ def create_error_window(message):
         :param message `str`: the message to be showed to the client
     """
     return create_window(name='ERROR', message=message, title='ERROR', window_type='MESSAGE')
+
+
+def window_response(window):
+    """
+    """
+    return {
+        'message': window['message'] if 'message' in window else None,
+        'title': window['title'] if 'title' in window else None,
+        'options': [option_response(x) for x in window['options']] if 'options' in window else []
+    } if window else None
+
+def option_response(option):
+    """
+    """
+    return {
+        'option': option['option'],
+        'value': option['display']
+    } if option else None
