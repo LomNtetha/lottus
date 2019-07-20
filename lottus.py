@@ -84,7 +84,7 @@ class Lottus(object):
                 actual_window = self.window_cache.get(actual_window_name)
 
         if actual_window is None and actual_window_name in self.mapped_windows:
-            actual_window = self.get_mapped_window(actual_window_name, session, request)
+            actual_window, old_session = self.get_mapped_window(actual_window_name, session, request)
 
         if actual_window is None:
             actual_window = self.get_window(actual_window_name)
