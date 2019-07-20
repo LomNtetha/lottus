@@ -1,30 +1,57 @@
+"""
+    lottus app
+    ----------
+
+    This module implements the central lottus application object
+    :copyright: 2019 Ben Chambule
+    :license: MIT
+"""
+
 import abc
 
 class Lottus(object):
     """
+        Represents the Lottus running application. 
+
+        Attributes
+        ----------
+        - initial_window: the first window that will be showed to client
+        - windows: the windows that will be showed to the client
+        - session_manager: the session manager 
+        - window_cache: the cache management for the windows
+        - mapped_windows: the windows that were mapped with the 'window' decorator
     """
-    def __init__(self, initial_window, windows, session_context, window_cache = None):
+    def __init__(self, initial_window, windows, session_manager, window_cache = None):
         """
+            Initializes the Lottus application
+
+            :param initial_window `str`: indicates the starting point of the application. The first window
+            that will be showed to the client. 
+            :param windows `dict`: a dictionary of windows
+            :param session_manager `SessionManager`: the session manager of Lottus
+            :param window_cache `WindowCache`: the cache management for the windows
         """
         self.initial_window = initial_window
         self.windows = windows
-        self.session_context = session_context
+        self.session_manager = session_manager
         self.window_cache = window_cache
         self.mapped_windows = {}
 
     def process_request(self, request):
         """
+            Processes the request and returns the window generated
+            :param request: a `dict` request
         """
         session_nr = request['session_nr']
         request_str = request['request_str']
         cell_nr = request['cell_nr']
 
-        session = self.session_context.get(session_nr, cell_nr)
+        session = self.session_manager.get(session_nr, cell_nr)
 
         window = None
 
         if session is None:
-            session = self.session_context.create(session_nr, cell_nr)
+            session = create_session(session_nr, cell_nr)
 
             if self.initial_window in self.mapped_windows:
                 window, session = self.get_mapped_window(self.initial_window, session, request)
@@ -36,12 +63,15 @@ class Lottus(object):
             window, session = self.process_window(session, request)
             
         session['window'] = window['name']
-        self.session_context.save(session)
+        self.session_manager.save(session)
 
         return window
 
     def process_window(self, session, request):
         """
+            Process the request and returns a window and the new session
+            :param session `dict`: the session of the current request
+            :param request `dict`: the actual request
         """
         actual_window_name = session['window']
         window = None
@@ -103,6 +133,9 @@ class Lottus(object):
 
     def get_selected_option(self, window, request):
         """
+            Returns the selected option based on current request. None if the selected option is invalid
+            :param window `dict`: the window upon which the option must be selected
+            :param request `dict`: the request with the choice
         """
         options = window['options']
 
@@ -110,11 +143,18 @@ class Lottus(object):
 
     def get_window(self, window_name):
         """
+            Returns the window with the name `window_name` from the windows `dict`
+            :param window_name `str`: the name of the window that must be returned. 
+            None if window couldn't be found
         """
         return self.windows[window_name] if window_name in self.windows else None
         
     def get_mapped_window(self, window_name, session, request):
         """
+            Returns the window and a session from the mapped_window `dict`
+            :param window_name `str`: the name of the window that must be returned.
+            :param session `dict`: the current session that will be passed to the window's processor
+            :param request `dict`: the current request that will be passed to the window's processor
         """
         if window_name in self.mapped_windows:
             processor = self.mapped_windows[window_name]
@@ -133,67 +173,112 @@ class Lottus(object):
 
     def add_window_rule(self, window_name, f):
         """
+            Maps the window to the function
+            :param window_name `str`: the window_name
+            :param f `function`: the function to be mapped to window_name
         """
         self.mapped_windows[window_name] = f
 
 
 class WindowCache(object):
+    """
+        Represents the cache object for lottus windows
+    """
     @abc.abstractmethod
-    def get(self, window, session_nr = None):
+    def get(self, window_name, session_nr = None):
         """
+            Returns the window previously cached based on the window_name and/or session_nr
+            :param window_name `str`: the name of the window that must be retrieved from the cache
+            :param session_nr: the identifier of the session 
         """
         pass
 
     @abc.abstractmethod
     def cache(self, window, session_nr = None):
         """
+            Adds the window the cache. If session_nr is provided then the window will be cached
+            and will be attached to the session_nr, meaning that every session will have it's 
+            own cached version of the window.
+            :param window `dict`: the window to be cached
+            :param session_nr: the identifier of the session
+        """
+        pass
+
+    @abc.abstractmethod
+    def delete(self, session_nr, window_name = None):
+        """
+            Deletes all cached windows of the session_nr. If window_name is provided only the window
+            with name window_name will be deleted.
+            :param session_nr: the identifier of the session
+            :param window_name `str`: the name of the window to be deleted
         """
         pass
 
 
-class SessionContext(object):
+class SessionManager(object):
+    """
+        Represents the session manager for lottus session
+    """
     @abc.abstractmethod
     def get(self, session_nr, cell_nr):
         """
+            Returns session based on the session identifier and cell identifier
+            :param session_nr: the session identifier
+            :param cell_nr: the cell identifier
         """
         pass
     
     @abc.abstractmethod
     def save(self, session):
         """
-        """
-        pass
-
-    @abc.abstractmethod
-    def create(self, session_nr, cell_nr):
-        """
+            Saves the session
+            :param session `dict`: the session to be saved
         """
         pass
 
     @abc.abstractmethod
     def finish(self, session):
         """
+            Terminates the session
+            :param session `dict`: the session to be saved
         """
         pass
 
-def create_session(session_nr, cell_nr, window = None, variables = None):
+def create_session(session_nr, cell_nr, window_name = None, variables = None):
     """
+        Returns a session `dict` to be used by lottus
+        :param session_nr: the session identifier
+        :param cell_nr: the cell identifier
+        :param window_name `str`: the current window name
+        :param variables `dict`: the variables of the session
     """
     return {
         'session_nr': session_nr, 
         'variables': variables,
         'cell_nr': cell_nr,
-        'window': window
+        'window': window_name
     }
 
 def create_request(session_nr, cell_nr, request_str):
     """
+        Returns a request `dict` to be used by lottus
+        :param session_nr: the session identifier
+        :param cell_nr: the cell identifier
+        :param request_str: the string with the request from the client
     """
     return {'session_nr': session_nr, 'cell_nr': cell_nr, 'request_str': request_str}
 
 
-def create_window(name, title, message, options=None, active=True, window_type="FORM"):
+def create_window(name, title, message, options=None, required=None, active=True, window_type="FORM"):
     """
+        Returns a window `dict` to be used by lottus
+        :param name `str`: name of the window
+        :param title `str`: title of the window
+        :param message `str`: message of the window
+        :param options `list`: list of `dict` options from which the client must choose
+        :param required `dict`: the variable that will be created and stored in the session
+        :param active `bool`: indicates whether the window will be showed to the client
+        :param window_type `str`: indicates whether the will is a FORM or a MESSAGE
     """
     return {
         'name': name, 
@@ -207,6 +292,11 @@ def create_window(name, title, message, options=None, active=True, window_type="
 
 def create_option(option, display, window, active=True):
     """
+        Returns an option `dict` to be used by lottus
+        :param option `str`: the value of the option
+        :param option `str`: the value that will be displayed
+        :param window `str`: the name of the window that this option points to
+        :param active `bool`: indicates wheter the option will be showed to the client
     """
     return {
         'option': option,
@@ -217,6 +307,12 @@ def create_option(option, display, window, active=True):
 
 def create_required(variable, window, in_options=False, var_type='numeric', var_length='11'):
     """
+        Returns the required `dict` to be used by lottus
+        :param variable `str`: the variable of that will be stored in the session
+        :param window `str`: the name of the window that this required object points to
+        :param in_options `bool`: indicates whether the value to be stored will be found in the options list
+        :param var_type `str`: indicates the type of the variable
+        :param var_length `str`: indicates the length of the variable
     """
     return {
         'var': variable,
@@ -227,4 +323,8 @@ def create_required(variable, window, in_options=False, var_type='numeric', var_
     }
 
 def create_error_window(message):
-    return create_window(name='ERROR', message=message, title='ERROR', window_type='END')
+    """
+        Returns an error window
+        :param message `str`: the message to be showed to the client
+    """
+    return create_window(name='ERROR', message=message, title='ERROR', window_type='MESSAGE')

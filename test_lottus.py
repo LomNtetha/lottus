@@ -31,20 +31,17 @@ windows = {
 }
 
 def create_lottus_app():
-    class InMemorySessionContext(SessionContext):
+    class InMemorySessionManager(SessionManager):
         def __init__(self):
             self._sessions = []
 
         def get(self, session_nr, cell_nr):
-            return next((s for s in self._sessions if s['number'] == session_nr and s['cell'] == cell_nr), None)
+            return next((s for s in self._sessions if s['session_nr'] == session_nr and s['cell_nr'] == cell_nr), None)
 
         def save(self, session):
             self._sessions.append(session)
 
-        def create(self, session_nr, cell_nr):
-            return {'number': session_nr, 'cell': cell_nr}
-
-    lottus_app = Lottus('INITIAL', windows, InMemorySessionContext())
+    lottus_app = Lottus('INITIAL', windows, InMemorySessionManager())
 
     @lottus_app.window('PORTUGUESE')
     def portuguese_window(session, request):
