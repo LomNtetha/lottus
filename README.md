@@ -6,7 +6,7 @@ An USSD library that will save you time. Ever wondered if you could quickly writ
 Installation
 ------------
 ``` {.sourceCode .bash}
-pipenv install git+https://github.com/benchambule/lottus.git@master#egg=lottus
+pipenv install -e git+https://github.com/benchambule/lottus.git@master#egg=lottus
 ```
 
 After installation
