@@ -47,7 +47,7 @@ def create_lottus_app():
         def cache(self, window, session_nr=None):
             self._windows[window['name']] = window
 
-    class InMemorySessionContext(SessionContext):
+    class InMemorySessionContext(SessionManager):
         def __init__(self):
             self._sessions = []
 
