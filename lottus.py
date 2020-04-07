@@ -3,7 +3,7 @@
     ----------
 
     This module implements the central lottus application object
-    :copyright: 2019 Ben Chambule
+    :copyright: 2020 Ben Chambule
     :license: MIT
 """
 
