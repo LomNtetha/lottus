@@ -3,7 +3,7 @@
     ----------
 
     This module implements the central lottus application object
-    :copyright: 2020 Ben Chambule
+    :copyright: Ben Chambule
     :license: MIT
 """
 
@@ -172,6 +172,7 @@ class Lottus(object):
         def decorator(f):
             self.add_window_rule(window_name, f)
             return f
+
         return decorator
 
     def add_window_rule(self, window_name, f):
@@ -247,6 +248,7 @@ class SessionManager(object):
         """
         pass
 
+
 def create_session(session_nr, cell_nr, window_name = None, variables = None):
     """
         Returns a session `dict` to be used by lottus
@@ -261,6 +263,7 @@ def create_session(session_nr, cell_nr, window_name = None, variables = None):
         'cell_nr': cell_nr,
         'window': window_name
     }
+
 
 def create_request(session_nr, cell_nr, request_str):
     """
@@ -308,6 +311,7 @@ def create_option(option, display, window, active=True):
         'active': active
     }
 
+
 def create_required(variable, window, in_options=False, var_type='numeric', var_length='11'):
     """
         Returns the required `dict` to be used by lottus
@@ -325,6 +329,7 @@ def create_required(variable, window, in_options=False, var_type='numeric', var_
         'length': var_length
     }
 
+
 def create_error_window(message):
     """
         Returns an error window
@@ -341,6 +346,7 @@ def window_response(window):
         'title': window['title'] if 'title' in window else None,
         'options': [option_response(x) for x in window['options']] if 'options' in window else []
     } if window else None
+
 
 def option_response(option):
     """
