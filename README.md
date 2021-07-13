@@ -118,7 +118,7 @@ python app.py
 Testing
 ------------------------
 
-Any one can test it on Postman or curl or httpie (my favorite)
+Anyone can test it on Postman or curl or httpie (my favorite)
 
 ``` {.sourceCode .bash}
 echo {"session_nr": 1234, "cell_nr": "+258842271064", "request_str": "1"} | http http://localhost:5000/ussdapp/json/
