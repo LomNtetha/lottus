@@ -23,18 +23,18 @@ def create_lottus_app():
         def __init__(self):
             self.windows = {}
 
-        def get(self, window_name, session_nr=None):
+        def get(self, window_name, session_id=None):
             return self.windows[window_name] if window_name in self.windows else None
 
-        def cache(self, window, session_nr=None):
+        def cache(self, window, session_id=None):
             self.windows[window['name']] = window
 
     class InMemorySessionManager(SessionManager):
         def __init__(self):
             self._sessions = []
 
-        def get(self, session_nr, cell_nr):
-            return next((s for s in self._sessions if s['session_nr'] == session_nr and s['cell_nr'] == cell_nr), None)
+        def get(self, session_id, phone):
+            return next((s for s in self._sessions if s['session_id'] == session_id and s['phone'] == phone), None)
 
         def save(self, session):
             self._sessions.append(session)
@@ -73,10 +73,10 @@ def test_must_return_portuguese_window():
     app = create_lottus_app()
 
     sessio_nr = random.randint(1000000, 9999999)
-    cell_nr = '258842217064'
+    phone = '258842217064'
 
-    app.process_request(create_request(session_nr=sessio_nr, cell_nr=cell_nr, request_str=8745))
-    window = app.process_request(create_request(session_nr=sessio_nr, cell_nr=cell_nr, request_str="2"))
+    app.process_request(create_request(session_id=sessio_nr, phone=phone, command=8745))
+    window = app.process_request(create_request(session_id=sessio_nr, phone=phone, command="2"))
 
     assert window['name'] == 'PORTUGUESE'
 
@@ -84,10 +84,10 @@ def test_must_return_english_window():
     app = create_lottus_app()
 
     sessio_nr = random.randint(1000000, 9999999)
-    cell_nr = '258842217064'
+    phone = '258842217064'
 
-    app.process_request(create_request(session_nr=sessio_nr, cell_nr=cell_nr, request_str=8745))
-    window = app.process_request(create_request(session_nr=sessio_nr, cell_nr=cell_nr, request_str="1"))
+    app.process_request(create_request(session_id=sessio_nr, phone=phone, command=8745))
+    window = app.process_request(create_request(session_id=sessio_nr, phone=phone, command="1"))
 
     assert window['name'] == 'ENGLISH'
 
@@ -95,9 +95,9 @@ def test_must_return_initial_window():
     app = create_lottus_app()
     
     sessio_nr = random.randint(1000000, 9999999)
-    cell_nr = '258842217064'
+    phone = '258842217064'
 
-    window = app.process_request(create_request(session_nr=sessio_nr, cell_nr=cell_nr, request_str=8745))
+    window = app.process_request(create_request(session_id=sessio_nr, phone=phone, command=8745))
 
     assert window['name'] == 'INITIAL'
 
@@ -105,13 +105,13 @@ def test_must_return_error_window():
     app = create_lottus_app()
     
     sessio_nr = random.randint(1000000, 9999999)
-    cell_nr = '258842217064'
+    phone = '258842217064'
 
-    window = app.process_request(create_request(session_nr=sessio_nr, cell_nr=cell_nr, request_str=8745))
+    window = app.process_request(create_request(session_id=sessio_nr, phone=phone, command=8745))
 
     assert window['name'] == 'INITIAL'
 
-    window = app.process_request(create_request(session_nr=sessio_nr, cell_nr=cell_nr, request_str="3"))
+    window = app.process_request(create_request(session_id=sessio_nr, phone=phone, command="3"))
 
     assert window['name'] == 'INITIAL'
 
@@ -119,10 +119,10 @@ def test_cache_must_not_be_empty():
     app = create_lottus_app()
     
     sessio_nr = random.randint(1000000, 9999999)
-    cell_nr = '258842217064'
+    phone = '258842217064'
 
-    app.process_request(create_request(session_nr=sessio_nr, cell_nr=cell_nr, request_str=8745))
-    app.process_request(create_request(session_nr=sessio_nr, cell_nr=cell_nr, request_str="3"))
+    app.process_request(create_request(session_id=sessio_nr, phone=phone, command=8745))
+    app.process_request(create_request(session_id=sessio_nr, phone=phone, command="3"))
 
     cache = app.window_cache
 
@@ -132,10 +132,10 @@ def test_cache_must_have_initial_window():
     app = create_lottus_app()
     
     sessio_nr = random.randint(1000000, 9999999)
-    cell_nr = '258842217064'
+    phone = '258842217064'
 
-    app.process_request(create_request(session_nr=sessio_nr, cell_nr=cell_nr, request_str=8745))
-    app.process_request(create_request(session_nr=sessio_nr, cell_nr=cell_nr, request_str="3"))
+    app.process_request(create_request(session_id=sessio_nr, phone=phone, command=8745))
+    app.process_request(create_request(session_id=sessio_nr, phone=phone, command="3"))
     
     cache = app.window_cache
 
@@ -145,10 +145,10 @@ def test_cache_must_have_portuguese_window():
     app = create_lottus_app()
     
     sessio_nr = random.randint(1000000, 9999999)
-    cell_nr = '258842217064'
+    phone = '258842217064'
 
-    app.process_request(create_request(session_nr=sessio_nr, cell_nr=cell_nr, request_str=8745))
-    app.process_request(create_request(session_nr=sessio_nr, cell_nr=cell_nr, request_str="2"))
+    app.process_request(create_request(session_id=sessio_nr, phone=phone, command=8745))
+    app.process_request(create_request(session_id=sessio_nr, phone=phone, command="2"))
 
     cache = app.window_cache
 
@@ -158,10 +158,10 @@ def test_cache_has_not_portuguese_menu():
     app = create_lottus_app()
     
     sessio_nr = random.randint(1000000, 9999999)
-    cell_nr = '258842217064'
+    phone = '258842217064'
 
-    app.process_request(create_request(session_nr=sessio_nr, cell_nr=cell_nr, request_str=8745))
-    app.process_request(create_request(session_nr=sessio_nr, cell_nr=cell_nr, request_str="1"))
+    app.process_request(create_request(session_id=sessio_nr, phone=phone, command=8745))
+    app.process_request(create_request(session_id=sessio_nr, phone=phone, command="1"))
 
     cache = app.window_cache
 
@@ -173,10 +173,10 @@ if __name__ == '__main__':
     app = create_lottus_app()
     
     sessio_nr = random.randint(1000000, 9999999)
-    cell_nr = '258842217064'
+    phone = '258842217064'
 
-    app.process_request(create_request(session_nr=sessio_nr, cell_nr=cell_nr, request_str=8745))
-    app.process_request(create_request(session_nr=sessio_nr, cell_nr=cell_nr, request_str="1"))
+    app.process_request(create_request(session_id=sessio_nr, phone=phone, command=8745))
+    app.process_request(create_request(session_id=sessio_nr, phone=phone, command="1"))
 
     cache = app.window_cache
     print(cache.windows['PORTUGUESE'])

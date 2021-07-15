@@ -41,24 +41,24 @@ def create_lottus_app():
         def __init__(self):
             self._windows = {}
 
-        def get(self, window, session_nr=None):
+        def get(self, window, session_id=None):
             return self._windows[window] if window in self._windows else None
 
-        def cache(self, window, session_nr=None):
+        def cache(self, window, session_id=None):
             self._windows[window['name']] = window
 
     class InMemorySessionContext(SessionManager):
         def __init__(self):
             self._sessions = []
 
-        def get(self, session_nr, cell_nr):
-            return next((s for s in self._sessions if s['number'] == session_nr and s['cell'] == cell_nr), None)
+        def get(self, session_id, phone):
+            return next((s for s in self._sessions if s['number'] == session_id and s['cell'] == phone), None)
 
         def save(self, session):
             self._sessions.append(session)
 
-        def create(self, session_nr, cell_nr):
-            return {'number': session_nr, 'cell': cell_nr}
+        def create(self, session_id, phone):
+            return {'number': session_id, 'cell': phone}
 
     lottus_app = Lottus('INITIAL', windows, InMemorySessionContext(), Cacheablility())
 
@@ -121,5 +121,5 @@ Testing
 Anyone can test it on Postman or curl or httpie (my favorite)
 
 ``` {.sourceCode .bash}
-echo '{"session_nr": 1234, "cell_nr": "+258842271064", "request_str": "0"}' | http http://localhost:5000/ussdapp/json/
+echo '{"session_id": 1234, "phone": "+258842271064", "command": "0"}' | http http://localhost:5000/ussdapp/json/
 ```

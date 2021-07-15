@@ -1,5 +1,5 @@
 """
-    lottus app
+    lottus
     ----------
 
     This module implements the central lottus application object
@@ -8,6 +8,7 @@
 """
 
 import abc
+
 
 class Lottus(object):
     """
@@ -42,21 +43,20 @@ class Lottus(object):
             Processes the request and returns the window generated
             :param request: a `dict` request
         """
-        session_nr = request['session_nr']
-        request_str = request['request_str']
-        cell_nr = request['cell_nr']
+        session_id = request['session_id']
+        phone = request['phone']
 
-        session = self.session_manager.get(session_nr, cell_nr)
+        session = self.session_manager.get(session_id, phone)
 
         window = None
 
         if session is None:
-            session = create_session(session_nr, cell_nr, self.initial_window)
+            session = create_session(session_id, phone, self.initial_window)
 
             if self.initial_window in self.mapped_windows:
                 window, session = self.get_mapped_window(self.initial_window, session, request)
                 if self.window_cache:
-                    self.window_cache.cache(window, session_nr)
+                    self.window_cache.cache(window, session_id)
             else:
                 window = self.get_window(self.initial_window)
         else:
@@ -78,7 +78,7 @@ class Lottus(object):
         actual_window = None
 
         if self.window_cache is not None:
-            actual_window = self.window_cache.get(actual_window_name, request['session_nr'])
+            actual_window = self.window_cache.get(actual_window_name, request['session_id'])
 
             if actual_window is None:
                 actual_window = self.window_cache.get(actual_window_name)
@@ -94,9 +94,9 @@ class Lottus(object):
         active = actual_window['active']
         required = actual_window['required'] if 'required' in actual_window else None
 
-        session_nr = request['session_nr']
-        request_str = request['request_str']
-        cell_nr = request['cell_nr']
+        session_id = request['session_id']
+        command = request['command']
+        phone = request['phone']
 
         if required is not None:
             if 'window' in required:
@@ -112,7 +112,7 @@ class Lottus(object):
                         actual_window['message'] = "Please select a valid option"
                         window = actual_window
                 else:
-                    session['variables'][required['var']] = request_str
+                    session['variables'][required['var']] = command
                 
                 window = self.get_window(required['window'])
             else:
@@ -128,7 +128,7 @@ class Lottus(object):
                     window, session = self.get_mapped_window(selected_option['window'], session, request)
 
                     if self.window_cache is not None:
-                        self.window_cache.cache(window, session_nr)
+                        self.window_cache.cache(window, session_id)
                 else:
                     window = self.get_window(selected_option['window'])
 
@@ -142,7 +142,7 @@ class Lottus(object):
         """
         options = window['options']
 
-        return next((s for s in options if s['option'] == request['request_str']), None)
+        return next((s for s in options if s['option'] == request['command']), None)
 
     def get_window(self, window_name):
         """
@@ -189,31 +189,31 @@ class WindowCache(object):
         Represents the cache object for lottus windows
     """
     @abc.abstractmethod
-    def get(self, window_name, session_nr = None):
+    def get(self, window_name, session_id = None):
         """
-            Returns the window previously cached based on the window_name and/or session_nr
+            Returns the window previously cached based on the window_name and/or session_id
             :param window_name `str`: the name of the window that must be retrieved from the cache
-            :param session_nr: the identifier of the session 
+            :param session_id: the identifier of the session 
         """
         pass
 
     @abc.abstractmethod
-    def cache(self, window, session_nr = None):
+    def cache(self, window, session_id = None):
         """
-            Adds the window the cache. If session_nr is provided then the window will be cached
-            and will be attached to the session_nr, meaning that every session will have it's 
+            Adds the window the cache. If session_id is provided then the window will be cached
+            and will be attached to the session_id, meaning that every session will have it's 
             own cached version of the window.
             :param window `dict`: the window to be cached
-            :param session_nr: the identifier of the session
+            :param session_id: the identifier of the session
         """
         pass
 
     @abc.abstractmethod
-    def delete(self, session_nr, window_name = None):
+    def delete(self, session_id, window_name = None):
         """
-            Deletes all cached windows of the session_nr. If window_name is provided only the window
+            Deletes all cached windows of the session_id. If window_name is provided only the window
             with name window_name will be deleted.
-            :param session_nr: the identifier of the session
+            :param session_id: the identifier of the session
             :param window_name `str`: the name of the window to be deleted
         """
         pass
@@ -224,11 +224,11 @@ class SessionManager(object):
         Represents the session manager for lottus session
     """
     @abc.abstractmethod
-    def get(self, session_nr, cell_nr):
+    def get(self, session_id, phone):
         """
             Returns session based on the session identifier and cell identifier
-            :param session_nr: the session identifier
-            :param cell_nr: the cell identifier
+            :param session_id: the session identifier
+            :param phone: the cell identifier
         """
         pass
     
@@ -249,30 +249,30 @@ class SessionManager(object):
         pass
 
 
-def create_session(session_nr, cell_nr, window_name = None, variables = None):
+def create_session(session_id, phone, window_name = None, variables = None):
     """
         Returns a session `dict` to be used by lottus
-        :param session_nr: the session identifier
-        :param cell_nr: the cell identifier
+        :param session_id: the session identifier
+        :param phone: the cell identifier
         :param window_name `str`: the current window name
         :param variables `dict`: the variables of the session
     """
     return {
-        'session_nr': session_nr, 
+        'session_id': session_id, 
         'variables': variables,
-        'cell_nr': cell_nr,
+        'phone': phone,
         'window': window_name
     }
 
 
-def create_request(session_nr, cell_nr, request_str):
+def create_request(session_id, phone, command):
     """
         Returns a request `dict` to be used by lottus
-        :param session_nr: the session identifier
-        :param cell_nr: the cell identifier
-        :param request_str: the string with the request from the client
+        :param session_id: the session identifier
+        :param phone: the cell identifier
+        :param command: the string with the request from the client
     """
-    return {'session_nr': session_nr, 'cell_nr': cell_nr, 'request_str': request_str}
+    return {'session_id': session_id, 'phone': phone, 'command': command}
 
 
 def create_window(name, title, message, options=None, required=None, active=True, window_type="FORM"):
