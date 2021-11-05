@@ -121,5 +121,5 @@ Testing
 Anyone can test it on Postman or curl or httpie (my favorite)
 
 ``` {.sourceCode .bash}
-echo '{"session_id": 1234, "phone": "+258842271064", "command": "0"}' | http http://localhost:5000/ussdapp/json/
+echo '{"session": 1234, "phone": "+258842271064", "command": "0"}' | http http://localhost:5000/ussdapp/json/
 ```

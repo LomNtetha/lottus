@@ -298,7 +298,7 @@ def create_request(session_id, phone, command):
     return {Constants.SESSION.value: session_id, Constants.PHONE.value: phone, Constants.COMMAND.value: command}
 
 
-def create_window(name, title, message, options=None, required=None, active=True, window_type=Constants.FORM):
+def create_window(name, title, message, options=None, required=None, active=True, window_type=Constants.FORM.value):
     """
         Returns a window `dict` to be used by lottus
         :param name `str`: name of the window
