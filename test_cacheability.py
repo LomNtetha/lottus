@@ -27,14 +27,14 @@ def create_lottus_app():
             return self.windows[window_name] if window_name in self.windows else None
 
         def cache(self, window, session_id=None):
-            self.windows[window['name']] = window
+            self.windows[window[Constants.NAME.value]] = window
 
     class InMemorySessionManager(SessionManager):
         def __init__(self):
             self._sessions = []
 
         def get(self, session_id, phone):
-            return next((s for s in self._sessions if s['session_id'] == session_id and s['phone'] == phone), None)
+            return next((s for s in self._sessions if s[Constants.SESSION.value] == session_id and s[Constants.PHONE.value] == phone), None)
 
         def save(self, session):
             self._sessions.append(session)
@@ -78,7 +78,7 @@ def test_must_return_portuguese_window():
     app.process_request(create_request(session_id=sessio_nr, phone=phone, command=8745))
     window = app.process_request(create_request(session_id=sessio_nr, phone=phone, command="2"))
 
-    assert window['name'] == 'PORTUGUESE'
+    assert window[Constants.NAME.value] == 'PORTUGUESE'
 
 def test_must_return_english_window():
     app = create_lottus_app()
@@ -89,7 +89,7 @@ def test_must_return_english_window():
     app.process_request(create_request(session_id=sessio_nr, phone=phone, command=8745))
     window = app.process_request(create_request(session_id=sessio_nr, phone=phone, command="1"))
 
-    assert window['name'] == 'ENGLISH'
+    assert window[Constants.NAME.value] == 'ENGLISH'
 
 def test_must_return_initial_window():
     app = create_lottus_app()
@@ -99,7 +99,7 @@ def test_must_return_initial_window():
 
     window = app.process_request(create_request(session_id=sessio_nr, phone=phone, command=8745))
 
-    assert window['name'] == 'INITIAL'
+    assert window[Constants.NAME.value] == 'INITIAL'
 
 def test_must_return_error_window():
     app = create_lottus_app()
@@ -109,11 +109,11 @@ def test_must_return_error_window():
 
     window = app.process_request(create_request(session_id=sessio_nr, phone=phone, command=8745))
 
-    assert window['name'] == 'INITIAL'
+    assert window[Constants.NAME.value] == 'INITIAL'
 
     window = app.process_request(create_request(session_id=sessio_nr, phone=phone, command="3"))
 
-    assert window['name'] == 'INITIAL'
+    assert window[Constants.NAME.value] == 'INITIAL'
 
 def test_cache_must_not_be_empty():
     app = create_lottus_app()

@@ -36,7 +36,7 @@ def create_lottus_app():
             self._sessions = []
 
         def get(self, session_id, phone):
-            return next((s for s in self._sessions if s['session_id'] == session_id and s['phone'] == phone), None)
+            return next((s for s in self._sessions if s[Constants.SESSION.value] == session_id and s[Constants.PHONE.value] == phone), None)
 
         def save(self, session):
             self._sessions.append(session)
@@ -72,11 +72,11 @@ def test_must_return_portuguese_menu():
 
     window = app.process_request(create_request(session_id=session_id, phone=phone, command=8745))
 
-    assert window['name'] == 'INITIAL'
+    assert window[Constants.NAME.value] == 'INITIAL'
 
     window = app.process_request(create_request(session_id=session_id, phone=phone, command="2"))
 
-    assert window['name'] == 'PORTUGUESE'
+    assert window[Constants.NAME.value] == 'PORTUGUESE'
 
 def test_must_return_english_menu():
     app = create_lottus_app()
@@ -86,11 +86,11 @@ def test_must_return_english_menu():
 
     window = app.process_request(create_request(session_id=session_id, phone=phone, command=8745))
 
-    assert window['name'] == 'INITIAL'
+    assert window[Constants.NAME.value] == 'INITIAL'
 
     window = app.process_request(create_request(session_id=session_id, phone=phone, command="1"))
 
-    assert window['name'] == 'ENGLISH'
+    assert window[Constants.NAME.value] == 'ENGLISH'
 
 def test_must_return_initial_menu():
     app = create_lottus_app()
@@ -100,7 +100,7 @@ def test_must_return_initial_menu():
 
     window = app.process_request(create_request(session_id=session_id, phone=phone, command=8745))
 
-    assert window['name'] == 'INITIAL'
+    assert window[Constants.NAME.value] == 'INITIAL'
 
 def test_must_return_error_menu():
     app = create_lottus_app()
@@ -110,8 +110,8 @@ def test_must_return_error_menu():
 
     window = app.process_request(create_request(session_id=session_id, phone=phone, command=8745))
 
-    assert window['name'] == 'INITIAL'
+    assert window[Constants.NAME.value] == 'INITIAL'
 
     window = app.process_request(create_request(session_id=session_id, phone=phone, command="3"))
 
-    assert window['name'] == 'INITIAL'
+    assert window[Constants.NAME.value] == 'INITIAL'

@@ -8,6 +8,29 @@
 """
 
 import abc
+import enum
+
+class Constants(enum.Enum):
+    PHONE = "phone"
+    SESSION = "session"
+    COMMAND = "command"
+    WINDOW = "window"
+    NAME = "name"
+    OPTIONS = "options"
+    TYPE = "type"
+    ACTIVE = "active"
+    REQUIRED = "required"
+    IN_OPTIONS = "in_options"
+    VARIABLES = "variables"
+    VALUE = "value"
+    MESSAGE = "message"
+    VAR = "var"
+    OPTION = "option"
+    DISPLAY = "display"
+    TITLE = "title"
+    LENGTH = "length"
+    FORM = "FORM"
+    ERROR = "ERROR"
 
 
 class Lottus(object):
@@ -20,7 +43,7 @@ class Lottus(object):
         - windows: the windows that will be showed to the client
         - session_manager: the session manager 
         - window_cache: the cache management for the windows
-        - mapped_windows: the windows that were mapped with the 'window' decorator
+        - mapped_windows: the windows that were mapped with the Constants.WINDOW decorator
     """
     def __init__(self, initial_window, windows, session_manager, window_cache = None):
         """
@@ -43,8 +66,8 @@ class Lottus(object):
             Processes the request and returns the window generated
             :param request: a `dict` request
         """
-        session_id = request['session_id']
-        phone = request['phone']
+        session_id = request[Constants.SESSION.value]
+        phone = request[Constants.PHONE.value]
 
         session = self.session_manager.get(session_id, phone)
 
@@ -62,7 +85,7 @@ class Lottus(object):
         else:
             window, session = self.process_window(session, request)
             
-        session['window'] = window['name']
+        session[Constants.WINDOW.value] = window[Constants.NAME.value]
         self.session_manager.save(session)
 
         return window
@@ -73,12 +96,12 @@ class Lottus(object):
             :param session `dict`: the session of the current request
             :param request `dict`: the actual request
         """
-        actual_window_name = session['window']
+        actual_window_name = session[Constants.WINDOW.value]
         window = None
         actual_window = None
 
         if self.window_cache is not None:
-            actual_window = self.window_cache.get(actual_window_name, request['session_id'])
+            actual_window = self.window_cache.get(actual_window_name, request[Constants.SESSION.value])
 
             if actual_window is None:
                 actual_window = self.window_cache.get(actual_window_name)
@@ -89,48 +112,48 @@ class Lottus(object):
         if actual_window is None:
             actual_window = self.get_window(actual_window_name)
 
-        options = actual_window['options']
-        window_type = actual_window['type']
-        active = actual_window['active']
-        required = actual_window['required'] if 'required' in actual_window else None
+        options = actual_window[Constants.OPTIONS.value]
+        window_type = actual_window[Constants.TYPE.value]
+        active = actual_window[Constants.ACTIVE.value]
+        required = actual_window[Constants.REQUIRED.value] if Constants.REQUIRED.value in actual_window else None
 
-        session_id = request['session_id']
-        command = request['command']
-        phone = request['phone']
+        session_id = request[Constants.SESSION.value]
+        command = request[Constants.COMMAND.value]
+        phone = request[Constants.PHONE.value]
 
         if required is not None:
-            if 'window' in required:
-                if 'in_options' in required and required['in_options'] == True:
+            if Constants.WINDOW.value in required:
+                if Constants.IN_OPTIONS.value in required and required[Constants.IN_OPTIONS.value] == True:
                     selected_option = self.get_selected_option(actual_window, request)
 
                     if selected_option:
-                        if 'value' in selected_option:
-                            session['variables'][required['var']] = selected_option['value']
+                        if Constants.VALUE.value in selected_option:
+                            session[Constants.VARIABLES.value][required[Constants.VAR.value]] = selected_option[Constants.VALUE.value]
                         else:
-                            session['variables'][required['var']] = selected_option['option']
+                            session[Constants.VARIABLES.value][required[Constants.VAR.value]] = selected_option[Constants.OPTION.value]
                     else:
-                        actual_window['message'] = "Please select a valid option"
+                        actual_window[Constants.MESSAGE.value] = "Please select a valid option"
                         window = actual_window
                 else:
-                    session['variables'][required['var']] = command
+                    session[Constants.VARIABLES.value][required[Constants.VAR.value]] = command
                 
-                window = self.get_window(required['window'])
+                window = self.get_window(required[Constants.WINDOW.value])
             else:
                 create_error_window("Error processing your request")
         else:
             selected_option = self.get_selected_option(actual_window, request)
 
             if selected_option is None:
-                actual_window['message'] = "Please select a valid option"
+                actual_window[Constants.MESSAGE.value] = "Please select a valid option"
                 window = actual_window
             else:
-                if selected_option['window'] in self.mapped_windows:
-                    window, session = self.get_mapped_window(selected_option['window'], session, request)
+                if selected_option[Constants.WINDOW.value] in self.mapped_windows:
+                    window, session = self.get_mapped_window(selected_option[Constants.WINDOW.value], session, request)
 
                     if self.window_cache is not None:
                         self.window_cache.cache(window, session_id)
                 else:
-                    window = self.get_window(selected_option['window'])
+                    window = self.get_window(selected_option[Constants.WINDOW.value])
 
         return window, session
 
@@ -140,9 +163,9 @@ class Lottus(object):
             :param window `dict`: the window upon which the option must be selected
             :param request `dict`: the request with the choice
         """
-        options = window['options']
+        options = window[Constants.OPTIONS.value]
 
-        return next((s for s in options if s['option'] == request['command']), None)
+        return next((s for s in options if s[Constants.OPTION.value] == request[Constants.COMMAND.value]), None)
 
     def get_window(self, window_name):
         """
@@ -258,10 +281,10 @@ def create_session(session_id, phone, window_name = None, variables = None):
         :param variables `dict`: the variables of the session
     """
     return {
-        'session_id': session_id, 
-        'variables': variables,
-        'phone': phone,
-        'window': window_name
+        Constants.SESSION.value: session_id, 
+        Constants.VARIABLES.value: variables,
+        Constants.PHONE.value: phone,
+        Constants.WINDOW.value: window_name
     }
 
 
@@ -272,10 +295,10 @@ def create_request(session_id, phone, command):
         :param phone: the cell identifier
         :param command: the string with the request from the client
     """
-    return {'session_id': session_id, 'phone': phone, 'command': command}
+    return {Constants.SESSION.value: session_id, Constants.PHONE.value: phone, Constants.COMMAND.value: command}
 
 
-def create_window(name, title, message, options=None, required=None, active=True, window_type="FORM"):
+def create_window(name, title, message, options=None, required=None, active=True, window_type=Constants.FORM):
     """
         Returns a window `dict` to be used by lottus
         :param name `str`: name of the window
@@ -287,12 +310,12 @@ def create_window(name, title, message, options=None, required=None, active=True
         :param window_type `str`: indicates whether the will is a FORM or a MESSAGE
     """
     return {
-        'name': name, 
-        'message': message,
-        'title': title,
-        'options': options,
-        'active': active,
-        'type': window_type
+        Constants.NAME.value: name, 
+        Constants.MESSAGE.value: message,
+        Constants.TITLE.value: title,
+        Constants.OPTIONS.value: options,
+        Constants.ACTIVE.value: active,
+        Constants.TYPE.value: window_type
     }
 
 
@@ -305,10 +328,10 @@ def create_option(option, display, window, active=True):
         :param active `bool`: indicates wheter the option will be showed to the client
     """
     return {
-        'option': option,
-        'display': display,
-        'window': window,
-        'active': active
+        Constants.OPTION.value: option,
+        Constants.DISPLAY.value: display,
+        Constants.WINDOW.value: window,
+        Constants.ACTIVE.value: active
     }
 
 
@@ -322,11 +345,11 @@ def create_required(variable, window, in_options=False, var_type='numeric', var_
         :param var_length `str`: indicates the length of the variable
     """
     return {
-        'var': variable,
-        'window': window,
-        'in_options': in_options,
-        'type': var_type,
-        'length': var_length
+        Constants.VAR.value: variable,
+        Constants.WINDOW.value: window,
+        Constants.IN_OPTIONS.value: in_options,
+        Constants.TYPE.value: var_type,
+        Constants.LENGTH.value: var_length
     }
 
 
@@ -335,16 +358,16 @@ def create_error_window(message):
         Returns an error window
         :param message `str`: the message to be showed to the client
     """
-    return create_window(name='ERROR', message=message, title='ERROR', window_type='MESSAGE')
+    return create_window(name=Constants.ERROR.value, message=message, title=Constants.ERROR.value, window_type=Constants.MESSAGE.value)
 
 
 def window_response(window):
     """
     """
     return {
-        'message': window['message'] if 'message' in window else None,
-        'title': window['title'] if 'title' in window else None,
-        'options': [option_response(x) for x in window['options']] if 'options' in window else []
+        Constants.MESSAGE.value: window[Constants.MESSAGE.value] if Constants.MESSAGE.value in window else None,
+        Constants.TITLE.value: window[Constants.TITLE.value] if Constants.TITLE.value in window else None,
+        Constants.OPTIONS.value: [option_response(x) for x in window[Constants.OPTIONS.value]] if Constants.OPTIONS.value in window else []
     } if window else None
 
 
@@ -352,6 +375,6 @@ def option_response(option):
     """
     """
     return {
-        'option': option['option'],
-        'value': option['display']
+        Constants.OPTION.value: option[Constants.OPTION.value],
+        Constants.VALUE.value: option[Constants.DISPLAY.value]
     } if option else None
