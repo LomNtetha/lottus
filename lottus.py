@@ -10,6 +10,8 @@
 import abc
 import enum
 
+from flask.globals import session
+
 class Constants(enum.Enum):
     PHONE = "phone"
     SESSION = "session"
@@ -84,9 +86,9 @@ class Lottus(object):
             else:
                 window = self.get_window(self.initial_window)
         else:
-            window, session = self.process_window(session, request)
             session[Constants.IS_NEW.value] = False
-            
+            window, session = self.process_window(session, request)
+ 
         session[Constants.WINDOW.value] = window[Constants.NAME.value]
         self.session_manager.save(session)
 
@@ -165,9 +167,9 @@ class Lottus(object):
             :param window `dict`: the window upon which the option must be selected
             :param request `dict`: the request with the choice
         """
-        options = window[Constants.OPTIONS.value]
+        options = window[Constants.OPTIONS.value] if window[Constants.OPTIONS.value] else []
 
-        return next((s for s in options if s[Constants.OPTION.value] == request[Constants.COMMAND.value]), None)
+        return next((o for o in options if o[Constants.OPTION.value] == request[Constants.COMMAND.value]), None)
 
     def get_window(self, window_name):
         """
