@@ -111,10 +111,9 @@ class Lottus(object):
                 actual_window = self.window_cache.get(actual_window_name)
 
         if actual_window is None and actual_window_name in self.mapped_windows:
-            actual_window, old_session = self.get_window(actual_window_name, session, request)
+            actual_window, session = self.get_window(actual_window_name, session, request)
 
-        if actual_window is None:
-            actual_window = self.get_window(actual_window_name)
+        print(f"actual window - {actual_window} - {type(actual_window)}")
 
         options = actual_window[Constants.OPTIONS.value]
         window_type = actual_window[Constants.TYPE.value]
@@ -141,7 +140,7 @@ class Lottus(object):
                 else:
                     session[Constants.VARIABLES.value][required[Constants.VAR.value]] = command
                 
-                window = self.get_window(required[Constants.WINDOW.value])
+                window, session = self.get_window(required[Constants.WINDOW.value, session, request])
             else:
                 create_error_window("Error processing your request")
         else:
@@ -157,7 +156,7 @@ class Lottus(object):
                     if self.window_cache is not None:
                         self.window_cache.cache(window, session_id)
                 else:
-                    window = self.get_window(selected_option[Constants.WINDOW.value])
+                    window = self.get_window(selected_option[Constants.WINDOW.value], session, request)
 
         return window, session
 
