@@ -31,6 +31,7 @@ class Constants(enum.Enum):
     LENGTH = "length"
     FORM = "FORM"
     ERROR = "ERROR"
+    IS_NEW = "is_new"
 
 
 class Lottus(object):
@@ -74,7 +75,7 @@ class Lottus(object):
         window = None
 
         if session is None:
-            session = create_session(session_id, phone, self.initial_window)
+            session = create_session(session_id, phone, True, self.initial_window)
 
             if self.initial_window in self.mapped_windows:
                 window, session = self.get_mapped_window(self.initial_window, session, request)
@@ -84,6 +85,7 @@ class Lottus(object):
                 window = self.get_window(self.initial_window)
         else:
             window, session = self.process_window(session, request)
+            session[Constants.IS_NEW.value] = False
             
         session[Constants.WINDOW.value] = window[Constants.NAME.value]
         self.session_manager.save(session)
@@ -272,7 +274,7 @@ class SessionManager(object):
         pass
 
 
-def create_session(session_id, phone, window_name = None, variables = None):
+def create_session(session_id, phone, is_new, window_name = None, variables = None):
     """
         Returns a session `dict` to be used by lottus
         :param session_id: the session identifier
@@ -284,7 +286,8 @@ def create_session(session_id, phone, window_name = None, variables = None):
         Constants.SESSION.value: session_id, 
         Constants.VARIABLES.value: variables,
         Constants.PHONE.value: phone,
-        Constants.WINDOW.value: window_name
+        Constants.WINDOW.value: window_name,
+        Constants.IS_NEW.value: is_new
     }
 
 
