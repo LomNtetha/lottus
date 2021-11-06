@@ -80,11 +80,11 @@ class Lottus(object):
             session = create_session(session_id, phone, True, self.initial_window)
 
             if self.initial_window in self.mapped_windows:
-                window, session = self.get_mapped_window(self.initial_window, session, request)
+                window, session = self.get_window(self.initial_window, session, request)
                 if self.window_cache:
                     self.window_cache.cache(window, session_id)
             else:
-                window = self.get_window(self.initial_window)
+                window = self.get_window(self.initial_window, session, request)
         else:
             session[Constants.IS_NEW.value] = False
             window, session = self.process_window(session, request)
@@ -111,7 +111,7 @@ class Lottus(object):
                 actual_window = self.window_cache.get(actual_window_name)
 
         if actual_window is None and actual_window_name in self.mapped_windows:
-            actual_window, old_session = self.get_mapped_window(actual_window_name, session, request)
+            actual_window, old_session = self.get_window(actual_window_name, session, request)
 
         if actual_window is None:
             actual_window = self.get_window(actual_window_name)
@@ -152,7 +152,7 @@ class Lottus(object):
                 window = actual_window
             else:
                 if selected_option[Constants.WINDOW.value] in self.mapped_windows:
-                    window, session = self.get_mapped_window(selected_option[Constants.WINDOW.value], session, request)
+                    window, session = self.get_window(selected_option[Constants.WINDOW.value], session, request)
 
                     if self.window_cache is not None:
                         self.window_cache.cache(window, session_id)
@@ -170,23 +170,18 @@ class Lottus(object):
         options = window[Constants.OPTIONS.value] if window[Constants.OPTIONS.value] else []
 
         return next((o for o in options if o[Constants.OPTION.value] == request[Constants.COMMAND.value]), None)
-
-    def get_window(self, window_name):
-        """
-            Returns the window with the name `window_name` from the windows `dict`
-            :param window_name `str`: the name of the window that must be returned. 
-            None if window couldn't be found
-        """
-        return self.windows[window_name] if window_name in self.windows else None
         
-    def get_mapped_window(self, window_name, session, request):
+    def get_window(self, window_name, session, request):
         """
             Returns the window and a session from the mapped_window `dict`
             :param window_name `str`: the name of the window that must be returned.
             :param session `dict`: the current session that will be passed to the window's processor
             :param request `dict`: the current request that will be passed to the window's processor
         """
-        if window_name in self.mapped_windows:
+        if self.windows and window_name in self.windows:
+            window = self.windows[window_name]
+
+        elif self.mapped_windows and window_name in self.mapped_windows:
             processor = self.mapped_windows[window_name]
             window, session = processor(session, request)
 
