@@ -1,138 +1,9 @@
-"""
-    lottus
-    ----------
-
-    This module implements the central lottus application object
-    :copyright: Ben Chambule
-    :license: MIT
-"""
-
-import abc
-import enum
-from typing import List
-from dataclasses import dataclass, asdict
+from context import LottusContext
+from entities import GeneratedWindow, Session, Request
+from providers import SessionProvider, GeneratedWindowProvider
 
 
-class WindowType(str, enum.Enum):
-    FORM = "FORM"
-    MESSAGE = "MESSAGE"
-
-
-class Constants(enum.Enum):
-    PHONE = "phone"
-    SESSION = "session"
-    COMMAND = "command"
-    WINDOW = "window"
-    NAME = "name"
-    OPTIONS = "options"
-    TYPE = "type"
-    ACTIVE = "active"
-    REQUIRED = "required"
-    IN_OPTIONS = "in_options"
-    VARIABLES = "variables"
-    VALUE = "value"
-    MESSAGE = "message"
-    VAR = "var"
-    OPTION = "option"
-    DISPLAY = "display"
-    TITLE = "title"
-    LENGTH = "length"
-    FORM = "FORM"
-    ERROR = "ERROR"
-    IS_NEW = "is_new"
-
-
-@dataclass
-class Required:
-    variable: str
-    window: str
-    in_options: str
-    var_type: str
-    length: str
-
-
-@dataclass
-class Request:
-    identifier: str
-    phone: str
-    command: str
-
-    def __str__(self) -> str:
-        return f"Request({str(asdict(self))}"
-
-
-@dataclass
-class Option:
-    identifier: str
-    display: str
-    window: str = None
-    value: str = None
-    active: bool = True
-
-    def __str__(self) -> str:
-        return f"Option({str(asdict(self))}"
-
-
-@dataclass
-class Window:
-    name: str
-    title: str
-    message: str
-    options: List[Option]
-    window_type: WindowType = WindowType.FORM
-    required: Required = None
-    active: bool = True
-
-    def __str__(self) -> str:
-        return f"Window{str(asdict(self))}"
-
-
-@dataclass
-class Session:
-    identifier: str
-    phone: str
-    is_new: bool
-    actual_command: str
-    window: Window = None
-    variables: List[str] = None
-
-    def add_variable(self) -> None:
-        pass
-
-    def __str__(self) -> str:
-        return f"Session{str(asdict(self))}"
-
-
-class SessionManager(object):
-    """
-        Represents the session manager for lottus session
-    """
-
-    @abc.abstractmethod
-    def get(self, session_id, phone) -> Session:
-        """
-            Returns session based on the session identifier and cell identifier
-            :param session_id: the session identifier
-            :param phone: the cell identifier
-        """
-        pass
-
-    @abc.abstractmethod
-    def save(self, session: Session):
-        """
-            Saves the session
-        """
-        pass
-
-    @abc.abstractmethod
-    def finish(self, session: Session):
-        """
-            Terminates the session
-        """
-        pass
-
-
-class Lottus:
+class Lottus(object):
     """
         Represents the Lottus running application. 
 
@@ -144,128 +15,85 @@ class Lottus:
         - mapped_windows: the windows that were mapped with the Constants.WINDOW decorator
     """
 
-    def __init__(self, initial_window: str, windows: List[Window], session_manager: SessionManager):
-        """
-            Initializes the Lottus application
-        """
-
-        self.windows = {}
-        for window in windows if windows else []:
-            if window.active:
-                self.windows[window.name] = window
-
-        self.initial_window = initial_window
-
-        self.session_manager = session_manager
-        self.mapped_windows = {}
-
-    def process_request(self, request: Request) -> Window:
-        """
-            Processes the request and returns the window generated
+    def __init__(self,
+                 initial_window: str, session_provider: SessionProvider, window_provider: GeneratedWindowProvider):
         """
 
-        session = self.session_manager.get(request.identifier, request.phone)
-
-        if session is None:
-            session = Session(identifier=request.identifier, phone=request.phone, actual_command=request.command,
-                              is_new=True)
-
-            if self.initial_window in self.mapped_windows:
-                session = self.process_session(session, self.initial_window)
-            else:
-                session = self.process_session(session, self.initial_window)
-        else:
-            session.is_new = False
-            session.actual_command = request.command
-
-            if session.window.window_type == WindowType.MESSAGE:
-                # TODO: throw exception
-                pass
-            session = self.process_window(session)
-
-        if session.window.window_type == WindowType.MESSAGE:
-            self.session_manager.finish(session)
-        else:
-            self.session_manager.save(session)
-
-        return session.window
-
-    def process_window(self, session: Session) -> Session:
-        """
-            Process the request and returns a window and the new session
+        :param initial_window:
+        :param session_provider:
+        :param window_provider:
         """
 
-        window = None
+        if not initial_window or not isinstance(initial_window, str):
+            raise ValueError("Invalid argument initial window")
 
-        if not window:
-            if session.window.name in self.mapped_windows:
-                session = self.process_session(session)
-            else:
-                selected_option = self.get_selected_option(session.window, session.actual_command)
+        if not session_provider or not isinstance(session_provider, SessionProvider):
+            raise ValueError("Invalid argument session provider")
 
-                if not selected_option:
-                    session.window.message = "Please select a valid option"
-                elif selected_option:
-                    session = self.process_session(session, window_name=selected_option.window)
-                else:
-                    session = self.process_session(session)
+        if not window_provider or not isinstance(window_provider, GeneratedWindowProvider):
+            raise ValueError("window provider cannot be empty nor null")
 
-        else:
-            session.window = window
+        self.__session_provider = session_provider
+        self.__initial_processor = initial_window
+        self.__processors = {}
+        self.__window_manager = window_provider
 
-        return session
-
-    @staticmethod
-    def get_selected_option(window: Window, command: str) -> Option:
-        """
-            Returns the selected option based on current request. None if the selected option is invalid
+    def process_request(self, request: Request) -> GeneratedWindow:
         """
 
-        return next((o for o in window.options if o.identifier == command), None)
-
-    def process_session(self, session: Session, window_name: str = None) -> Session:
-        """
-            :param session:
-            :param window_name:
+        :param request:
+        :return:
         """
 
-        # TODO: throw exception when window is not found
-        if window_name:
-            if self.windows and window_name in self.windows:
-                window = self.windows[window_name]
-                session.window = window
+        if not request or not isinstance(request, Request):
+            raise ValueError("Invalid argument request")
 
-            elif self.mapped_windows and window_name in self.mapped_windows:
-                processor = self.mapped_windows[window_name]
-                session = processor(session)
-        elif session.window:
-            if self.windows and session.window.name in self.windows:
-                window = self.windows[session.window.name]
-                session.window = window
+        if not request.identifier:
+            raise ValueError("identifier cannot be null")
 
-            elif self.mapped_windows and session.window.name in self.mapped_windows:
-                processor = self.mapped_windows[session.window.name]
-                session = processor(session)
+        if not request.command:
+            raise ValueError("command cannot be null")
 
-        return session
+        if not request.phone:
+            raise ValueError("phone cannot be null")
 
-    def window(self, window_name):
+        session = self.__session_provider.get(identifier=request.identifier, phone=request.phone)
+
+        if not session:
+            session = Session(identifier=request.identifier, phone=request.phone, current_window=None)
+
+        lottus_context = LottusContext(self.__initial_processor, current_session=session, processors=self.__processors)
+
+        window = lottus_context.process_command(request.command)
+
+        session.set_current_window(window)
+        self.__session_provider.save(session)
+        self.__window_manager.save(window)
+
+        return window
+
+    def processor(self, processor_name):
         """
-            A decorator that is used to register a new processor for a window_name
+
+        :param processor_name:
+        :return:
         """
 
         def decorator(f):
-            self.add_window_rule(window_name, f)
+            self.add_processor_rule(processor_name, f)
             return f
 
         return decorator
 
-    def add_window_rule(self, window_name, f):
-        """
-            Maps the window to the function
+    def add_processor_rule(self, window_name, f):
         """
 
-        self.mapped_windows[window_name] = f
+        :param window_name:
+        :param f:
+        :return:
+        """
+
+        self.__processors[window_name] = f
 
     def __str__(self) -> str:
-        return f"Lottus({dict([('initial_window', self.initial_window), ('windows', self.windows), ('mapped_windows', self.mapped_windows)])})"
+        return f"Lottus({dict([('initial_window', self.__initial_processor), ('mapped_windows', self.__processors)])})"
