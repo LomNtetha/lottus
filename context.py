@@ -9,6 +9,7 @@ class LottusContext:
     """
 
     """
+
     def __init__(self, initial_window: str, current_session: Session, processors: Dict) -> None:
         """
 
@@ -27,7 +28,7 @@ class LottusContext:
             raise ValueError("processors cannot be null")
 
         if initial_window not in processors:
-            raise WindowNotFoundError(f"Window {initial_window} not found in the processors list")
+            raise WindowNotFoundError(None, f"Window {initial_window} not found in the processors list")
 
         self.__processors = processors
         self.__currentSession = current_session
@@ -103,24 +104,16 @@ class LottusContext:
         if not current_window:
             processor = self.__processors.get(self.__initial_window)
         else:
-            if current_window.options and len(current_window.options) > 1:
-                for op in current_window.options:
-                    if op.identifier == command:
-                        processor = self.__processors[op.window]
-                        break
-                else:
-                    raise InvalidSelectedOptionError(
-                        f"Invalid select option {op.identifier} on window {current_window.name}")
-            else:
-                processor = self.__processors.get(current_window.name)
+            processor = self.__processors.get(current_window.name)
 
         if not processor:
-            raise ProcessorNotFoundError(f"Processor for window {current_window.name} not found")
+            raise ProcessorNotFoundError(None, f"Processor for window {current_window.name} not found")
 
         generated_window = processor(self, command)
 
         if not generated_window:
             raise ProcessorInvalidReturnError(
+                None,
                 f"Processor {processor} for window {current_window.name} returned an invalid response")
 
         return generated_window

@@ -3,9 +3,10 @@ from typing import List
 
 import pytest
 
-from entities import Window, Option
+from entities import Window, Option, Session, GeneratedWindow, Request
 from exceptions import InvalidSelectedOptionError
-from lottus import *
+from lottus import LottusContext, SessionProvider, GeneratedWindowProvider, Lottus
+from processors import default_processor
 
 
 def create_lottus_app():
@@ -107,18 +108,20 @@ def create_lottus_app():
         :param command:
         :return:
         """
-
-        return GeneratedWindow.fromWindow(
-            Window(name="INFO_PT", title="Portugues", message="Por favor selecione uma das opcoes",
-                   options=[
-                       Option(identifier="1", display="Informacao basica", window="BASIC_INFO_PT"),
-                       Option(identifier="2", display="Habilidades", window="SKILLS_INFO_PT"),
-                       Option(identifier="3", display="Contacto", window="CONTACT_INFO_PT"),
-                       Option(identifier="4", display="Formacao academica", window="Academic_INFO_PT"),
-                       Option(identifier="5", display="Mudar idioma", window="INITIAL")
-                   ]),
-            session_identifier=lottus_context.current_session.identifier
-        )
+        if lottus_context.current_window.name == "INFO_PT":
+            return default_processor(lottus_context=lottus_context, command=command)
+        else:
+            return GeneratedWindow.fromWindow(
+                Window(name="INFO_PT", title="Portugues", message="Por favor seleccione uma das opcoes",
+                       options=[
+                           Option(identifier="1", display="Informacao basica", window="BASIC_INFO_PT"),
+                           Option(identifier="2", display="Habilidades", window="SKILLS_INFO_PT"),
+                           Option(identifier="3", display="Contacto", window="CONTACT_INFO_PT"),
+                           Option(identifier="4", display="Formacao academica", window="Academic_INFO_PT"),
+                           Option(identifier="5", display="Mudar idioma", window="INITIAL")
+                       ]),
+                session_identifier=lottus_context.current_session.identifier
+            )
 
     @lottus_app.processor('BASIC_INFO_PT')
     def basic_info_pt(lottus_context: LottusContext, command: str) -> GeneratedWindow:
@@ -142,15 +145,17 @@ def create_lottus_app():
         :param command:
         :return:
         """
-
-        return GeneratedWindow.fromWindow(
-            Window(name="INITIAL", title="Ben Chambule's USSD - CV", message="Select language/Escolha idioma",
-                   options=[
-                       Option(identifier="1", display="Portugues", window="INFO_PT"),
-                       Option(identifier="2", display="English", window="INFO_EN")
-                   ]),
-            session_identifier=lottus_context.current_session.identifier
-        )
+        if not lottus_context.current_window:
+            return GeneratedWindow.fromWindow(
+                Window(name="INITIAL", title="Ben Chambule's USSD - CV", message="Select language/Escolha idioma",
+                       options=[
+                           Option(identifier="1", display="Portugues", window="INFO_PT"),
+                           Option(identifier="2", display="English", window="INFO_EN")
+                       ]),
+                session_identifier=lottus_context.current_session.identifier
+            )
+        else:
+            return default_processor(lottus_context=lottus_context, command=command)
 
     @lottus_app.processor("INFO_EN")
     def info_en(lottus_context: LottusContext, command: str) -> GeneratedWindow:
@@ -162,7 +167,7 @@ def create_lottus_app():
         """
 
         return GeneratedWindow.fromWindow(
-            Window(name="INFO_EN", title="English", message="Please select on of the options", options=[
+            Window(name="INFO_EN", title="English", message="Please select one of the options", options=[
                 Option(identifier="1", display="Basic Information", window="BASIC_INFO_EN"),
                 Option(identifier="2", display="Skills", window="SKILLS_INFO_EN"),
                 Option(identifier="3", display="Contact", window="CONTACT_INFO_EN"),
