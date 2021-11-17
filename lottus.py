@@ -66,7 +66,7 @@ class Lottus(object):
 
         window = lottus_context.process_command(request.command)
 
-        session.set_current_window(window)
+        session.current_window = window
         self.__session_provider.save(session)
         self.__window_manager.save(window)
 

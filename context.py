@@ -41,7 +41,7 @@ class LottusContext:
         :return:
         """
 
-        self.__currentSession.set_current_window(current_window)
+        self.__currentSession.current_window = current_window
 
     @property
     def current_window(self) -> GeneratedWindow:
