@@ -52,7 +52,7 @@ class LottusContext:
 
         return self.__currentSession.current_window
 
-    def addTag(self, name, value=None) -> None:
+    def add_tag(self, name, value=None) -> None:
         """
 
         :param name:
@@ -63,7 +63,7 @@ class LottusContext:
         if not name:
             raise ValueError("Invalid argument 'name'")
 
-        self.__currentSession.addTag(Tag(name, value))
+        self.__currentSession.add_tag(Tag(name, value))
 
     @property
     def tags(self):

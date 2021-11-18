@@ -762,7 +762,7 @@ class Session:
 
     """
 
-    def __init__(self, identifier, phone, current_window) -> None:
+    def __init__(self, identifier, phone, current_window: str, tags: List[Tag] = None) -> None:
         """
 
         :param identifier:
@@ -773,6 +773,7 @@ class Session:
         self.__identifier = identifier
         self.__phone = phone
         self.__current_window = current_window
+        self.__tags = tags
 
     @property
     def identifier(self) -> str:
@@ -826,5 +827,25 @@ class Session:
         :return:
         """
         self.__current_window = value
+
+    @property
+    def tags(self) -> List[Tag]:
+        """
+
+        :return:
+        """
+        return self.__tags
+
+    @tags.setter
+    def tags(self, value) -> None:
+        """
+
+        :param value:
+        :return:
+        """
+        self.__tags = value
+
+    def add_tag(self, tag: Tag):
+        self.__tags.append(tag)
 
 
