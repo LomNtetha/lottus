@@ -762,7 +762,7 @@ class Session:
 
     """
 
-    def __init__(self, identifier, phone, current_window: str, tags: List[Tag] = None) -> None:
+    def __init__(self, identifier, phone, current_window: str, tags: List[Tag] = []) -> None:
         """
 
         :param identifier:
@@ -845,7 +845,15 @@ class Session:
         """
         self.__tags = value
 
-    def add_tag(self, tag: Tag):
+    def add_tag(self, tag: Tag) -> None:
         self.__tags.append(tag)
+
+    def get_tag(self, name) -> Tag:
+        for t in self.__tags:
+            if t.name == name:
+                return t
+
+        return None
+
 
 

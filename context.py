@@ -66,24 +66,6 @@ class LottusContext:
         self.__currentSession.add_tag(Tag(name, value))
 
     @property
-    def tags(self):
-        """
-
-        :return:
-        """
-
-        self.__currentSession.getTags()
-
-    def getTag(self, name):
-        """
-
-        :param name:
-        :return:
-        """
-
-        return self.__currentSession.getTag(name)
-
-    @property
     def current_session(self) -> Session:
         """
 
