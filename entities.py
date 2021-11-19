@@ -854,6 +854,3 @@ class Session:
                 return t
 
         return None
-
-
-

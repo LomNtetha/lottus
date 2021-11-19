@@ -1,8 +1,8 @@
 from typing import Dict
 
-from entities import Session, GeneratedWindow, Tag
+from entities import Session, GeneratedWindow, Tag, WindowType
 from exceptions import WindowNotFoundError, InvalidSelectedOptionError, ProcessorNotFoundError, \
-    ProcessorInvalidReturnError
+    ProcessorInvalidReturnError, SessionAlreadyFinishedError
 
 
 class LottusContext:
@@ -74,6 +74,20 @@ class LottusContext:
 
         return self.__currentSession
 
+    def call_processor(self, processor_name: str, command: str) -> GeneratedWindow:
+        """
+
+        :param command:
+        :param processor_name:
+        :return:
+        """
+        if processor_name in self.__processors:
+            processor = self.__processors[processor_name]
+        else:
+            raise ProcessorNotFoundError(None, f"No processor found for window {processor_name}")
+
+        return processor(processor_name, command)
+
     def process_command(self, command: str) -> GeneratedWindow:
         """
 
@@ -82,6 +96,9 @@ class LottusContext:
         """
 
         current_window = self.current_session.current_window
+
+        if current_window.window_type == WindowType.MESSAGE:
+            raise SessionAlreadyFinishedError(None, "Current session already finished")
 
         if not current_window:
             processor = self.__processors.get(self.__initial_window)
