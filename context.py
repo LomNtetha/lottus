@@ -110,10 +110,12 @@ class LottusContext:
 
         generated_window = processor(self, command)
 
-        if not generated_window:
+        if not generated_window or not isinstance(generated_window, GeneratedWindow):
             raise ProcessorInvalidReturnError(
                 None,
                 f"Processor {processor} for window {current_window.name} returned an invalid response")
+
+        generated_window.previous_window = current_window
 
         return generated_window
 
