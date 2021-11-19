@@ -567,7 +567,7 @@ class GeneratedWindow:
                  message: str,
                  options: List[GeneratedOption] = [],
                  window_type: WindowType = WindowType.FORM,
-                 previous_window: GeneratedWindow = None):
+                 previous_window = None):
         """
 
         :param session_identifier:
@@ -695,7 +695,7 @@ class GeneratedWindow:
         self._window_type = value
 
     @property
-    def previous_window(self) -> GeneratedWindow:
+    def previous_window(self):
         """
 
         :return:

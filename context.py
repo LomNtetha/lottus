@@ -97,12 +97,12 @@ class LottusContext:
 
         current_window = self.current_session.current_window
 
-        if current_window.window_type == WindowType.MESSAGE:
-            raise SessionAlreadyFinishedError(None, "Current session already finished")
-
         if not current_window:
             processor = self.__processors.get(self.__initial_window)
         else:
+            if current_window.window_type == WindowType.MESSAGE:
+                raise SessionAlreadyFinishedError(None, "Current session already finished")
+
             processor = self.__processors.get(current_window.name)
 
         if not processor:
