@@ -566,8 +566,7 @@ class GeneratedWindow:
                  title: str,
                  message: str,
                  options: List[GeneratedOption] = [],
-                 window_type: WindowType = WindowType.FORM,
-                 previous_window = None):
+                 window_type: WindowType = WindowType.FORM):
         """
 
         :param session_identifier:
@@ -584,7 +583,6 @@ class GeneratedWindow:
         self._message = message
         self._options = options
         self._window_type = window_type
-        self._previous_window = previous_window
 
     @property
     def session_identifier(self) -> str:
@@ -693,23 +691,6 @@ class GeneratedWindow:
         :return:
         """
         self._window_type = value
-
-    @property
-    def previous_window(self):
-        """
-
-        :return:
-        """
-        return self._previous_window
-
-    @previous_window.setter
-    def previous_window(self, value) -> None:
-        """
-
-        :param value:
-        :return:
-        """
-        self._previous_window = value
 
     @classmethod
     def fromWindow(cls, window: Window, session_identifier: Any):
